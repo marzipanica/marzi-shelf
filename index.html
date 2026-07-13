@@ -9,10 +9,15 @@
         .controls { text-align: center; margin-bottom: 30px; }
         input { padding: 10px; width: 250px; border-radius: 5px; border: none; }
         button { padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px; }
-        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; max-width: 1000px; margin: auto; }
-        .card { background: #131722; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; position: relative; }
-        .card img { width: 100px; height: 100px; object-fit: contain; }
-        .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-weight: bold; font-size: 12px; }
+        
+        /* Стили для секций по редкости */
+        .rarity-section { margin-bottom: 40px; }
+        .rarity-title { color: #f1c40f; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; }
+        
+        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+        .card { background: #131722; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; position: relative; }
+        .card img { width: 80px; height: 80px; object-fit: contain; }
+        .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-weight: bold; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -21,58 +26,57 @@
         <input type="text" id="userInput" placeholder="Введи ник...">
         <button onclick="loadShelf()">Показать</button>
     </div>
-    <div id="shelf" class="shelf"></div>
+    <div id="shelf-container"></div>
 
     <script>
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
 
-        // Порядок сортировки (от самого редкого к обычному)
-        const rarityOrder = {
-            'mythic': 1,
-            'legendary': 2,
-            'epic': 3,
-            'exclusive': 4,
-            'ultrarare': 5,
-            'rare': 6,
-            'common': 7
-        };
+        // Порядок, в котором выводить колонки
+        const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
 
         async function loadShelf() {
             const user = document.getElementById('userInput').value.toLowerCase();
-            const shelf = document.getElementById('shelf');
-            shelf.innerHTML = 'Загрузка...';
+            const container = document.getElementById('shelf-container');
+            container.innerHTML = 'Загрузка...';
             
             try {
                 const res = await fetch(SHEET_API_URL);
                 const data = await res.json();
                 
-                const inventory = {};
-                data.filter(i => i.Ник.toLowerCase() === user).forEach(i => {
-                    if (!inventory[i.Предмет]) {
-                        inventory[i.Предмет] = { count: 0, img: i.Картинка, rarity: i.Редкость ? i.Редкость.toLowerCase() : 'common' };
+                const userItems = data.filter(i => i.Ник.toLowerCase() === user);
+                if (userItems.length === 0) { container.innerHTML = '<p>Ничего не найдено.</p>'; return; }
+
+                // Группируем по редкости
+                const grouped = {};
+                userItems.forEach(i => {
+                    const r = (i.Редкость || 'common').toLowerCase();
+                    if (!grouped[r]) grouped[r] = {};
+                    if (!grouped[r][i.Предмет]) grouped[r][i.Предмет] = { count: 0, img: i.Картинка };
+                    grouped[r][i.Предмет].count += 1;
+                });
+                
+                container.innerHTML = '';
+                
+                // Выводим каждую группу
+                rarityOrder.forEach(r => {
+                    if (grouped[r]) {
+                        container.innerHTML += `<div class="rarity-section"><h2 class="rarity-title">${r}</h2><div class="shelf" id="shelf-${r}"></div></div>`;
+                        const shelf = document.getElementById(`shelf-${r}`);
+                        
+                        for (const [name, item] of Object.entries(grouped[r])) {
+                            const imgUrl = item.img.startsWith('http') ? item.img : SITE_BASE + item.img;
+                            shelf.innerHTML += `
+                                <div class="card">
+                                    <span class="count">${item.count}</span>
+                                    <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/100'">
+                                    <p style="font-size: 10px;">${name}</p>
+                                </div>
+                            `;
+                        }
                     }
-                    inventory[i.Предмет].count += 1;
                 });
-                
-                // Превращаем в массив для сортировки
-                const sortedItems = Object.entries(inventory).sort((a, b) => {
-                    return (rarityOrder[a[1].rarity] || 99) - (rarityOrder[b[1].rarity] || 99);
-                });
-                
-                shelf.innerHTML = sortedItems.length === 0 ? '<p>Ничего не найдено.</p>' : '';
-                
-                sortedItems.forEach(([name, item]) => {
-                    const imgUrl = item.img.startsWith('http') ? item.img : SITE_BASE + item.img;
-                    shelf.innerHTML += `
-                        <div class="card">
-                            <span class="count">${item.count}</span>
-                            <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/100'">
-                            <p style="font-size: 12px;">${name}</p>
-                        </div>
-                    `;
-                });
-            } catch(e) { shelf.innerHTML = 'Ошибка загрузки.'; }
+            } catch(e) { container.innerHTML = 'Ошибка загрузки.'; }
         }
     </script>
 </body>
