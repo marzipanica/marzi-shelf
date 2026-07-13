@@ -7,71 +7,134 @@
         @font-face { font-family: 'BetterVCR'; src: url('marzigacha/better-vcr.woff') format('woff'); }
         body { background-color: #000; color: #21ff7a; font-family: 'BetterVCR', monospace; padding: 20px; cursor: crosshair; }
         
-        /* Анимация для Эпика */
-        @keyframes epic-glow {
-            0% { box-shadow: 0 0 5px #fff; border-color: #fff; }
-            50% { box-shadow: 0 0 20px #fff; border-color: #aaa; }
-            100% { box-shadow: 0 0 5px #fff; border-color: #fff; }
+        /* Анимации EPIC (Сине-розовые) */
+        @keyframes shadow-glitch {
+            0%, 100% { text-shadow: 2px 0 #ff21b9, -2px 0 #050df2; }
+            50% { text-shadow: -2px 0 #ff21b9, 2px 0 #050df2; }
         }
+        @keyframes border-glitch {
+            0%, 100% { box-shadow: 0 0 0 transparent; }
+            30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #ff21b9; }
+            70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #ff21b9; }
+        }
+
+        /* Анимации ULTRARARE (Чисто синие тени) */
+        @keyframes ultra-shadow-glitch {
+            0%, 100% { text-shadow: 2px 0 #050df2, -2px 0 #050df2; }
+            50% { text-shadow: -2px 0 #050df2, 2px 0 #050df2; }
+        }
+        @keyframes ultra-border-glitch {
+            0%, 100% { box-shadow: 0 0 0 transparent; }
+            30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #050df2; }
+            70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #050df2; }
+        }
+
+        .glitch-text { animation: shadow-glitch 3s infinite ease-in-out; color: #fff; display: inline-block; }
+        .ultra-text { animation: ultra-shadow-glitch 3s infinite ease-in-out; color: #fff; display: inline-block; }
+        
+        .epic-border { animation: border-glitch 3s infinite ease-in-out; border: 3px solid #fff !important; }
+        .ultra-border { animation: ultra-border-glitch 3s infinite ease-in-out; border: 3px solid #ff21b9 !important; }
 
         .header-panel { border: 3px solid #050df2; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
         input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
-        button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; }
+        button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; transition: 0.2s; }
+        button:hover { background: #21ff7a; color: #000; }
         
         .window { border: 4px solid #ff21b9; background: #000; margin-bottom: 20px; display: none; }
         .window.active { display: block; }
-        .win-header { background: #ff21b9; color: #fff; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; font-size: 1.5em; }
+        .win-header { background: #ff21b9; color: #fff; padding: 10px; font-weight: bold; font-size: 1.5em; }
         
-        /* Стили карточек по редкости */
-        .card-common { border: 2px dashed #21ff7a !important; }
-        .card-rare { border: 3px solid #050df2 !important; }
-        .card-ultrarare { border: 3px solid #ff21b9 !important; }
-        .card-epic { animation: epic-glow 1.5s infinite alternate; }
+        .top-list { list-style: none; padding: 20px; font-size: 2em; }
+        .top-item { cursor: pointer; padding: 10px; border-bottom: 2px solid #050df2; }
+        .top-item:hover { color: #fff; background: #050df2; }
 
+        .rarity-section { margin-bottom: 50px; padding: 20px; border: 3px dashed; }
+        
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; }
-        .card { padding: 20px; text-align: center; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; }
+        .card { padding: 20px; text-align: center; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; border: 3px solid; overflow: hidden; position: relative; }
         .card img { width: 180px; height: 180px; image-rendering: pixelated; object-fit: contain; }
         
         .spoiler-btn { background: #000; border: 2px solid #21ff7a; color: #21ff7a; cursor: pointer; padding: 10px; margin-top: 15px; font-family: 'BetterVCR'; font-size: 1.2em; width: 100%; }
-        .hidden-name { display: none; font-size: 1.4em; margin-top: 15px; color: #fff; }
-        .reward-name { font-size: 1.4em; margin-top: 15px; color: #fff; }
-        
-        .taskbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050df2; padding: 15px; display: flex; gap: 10px; z-index: 1000; }
+        .hidden-name { display: none; font-size: 1.4em; margin-top: 15px; color: #fff; text-shadow: none; }
+        .reward-name { font-size: 1.4em; margin-top: 15px; color: #fff; text-shadow: none; }
     </style>
 </head>
 <body>
 
     <div class="header-panel">
-        <input type="text" id="userInput" placeholder="NICKNAME...">
+        <input type="text" id="userInput" placeholder="TWITCH_USERNAME...">
         <button onclick="loadUserShelf(document.getElementById('userInput').value)">INITIALIZE</button>
         <button onclick="showWindow('top-window')" style="border-color:#21ff7a">TOP_LIST</button>
     </div>
 
+    <div id="top-window" class="window active">
+        <div class="win-header">TOP_MARZI_COLLECTORS</div>
+        <ul class="top-list" id="top-list"></ul>
+    </div>
+
     <div id="shelf-window" class="window">
-        <div class="win-header">USER_COLLECTION <span onclick="minimize('shelf-window')" style="cursor:pointer">[_]</span></div>
+        <div class="win-header" id="shelf-header">COLLECTION</div>
         <div id="shelf-container" style="padding: 20px;"></div>
     </div>
 
     <script>
-        // ... (код до renderShelf идентичен) ...
+        const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
+        const ALL_ITEMS = {
+            epic: [{name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif"}, {name: "Bunny Marzi", url: "marzigacha/BUNNY.gif"}, {name: "N7 Marzi", url: "marzigacha/n7.gif"}, {name: "Sailor Marzi", url: "marzigacha/SAILOR.gif"}, {name: "Succubus Marzi", url: "marzigacha/suc.gif"}],
+            ultrarare: [{name: "Bad Signal Marzi", url: "marzigacha/BADSIGNAL.gif"}, {name: "Diamond Marzi", url: "marzigacha/DIAMOND.gif"}, {name: "Golden Marzi", url: "marzigacha/GOLDEN.gif"}, {name: "Holographic Marzi", url: "marzigacha/HOLO.gif"}],
+            rare: [{name: "Acid Marzi", url: "marzigacha/ACID.gif"}, {name: "Albino Marzi", url: "marzigacha/ALBINIO.gif"}, {name: "Bubblegum Marzi", url: "marzigacha/BUBBLEGUM.gif"}, {name: "Eva Marzi", url: "marzigacha/EVA.gif"}, {name: "Haunted Marzi", url: "marzigacha/HAUNTED.gif"}, {name: "Inverted Marzi", url: "marzigacha/INVERTED.gif"}, {name: "Midnight Marzi", url: "marzigacha/MIDNIGHT.gif"}, {name: "Noir Marzi", url: "marzigacha/NOIR.gif"}, {name: "Pumpkin Marzi", url: "marzigacha/PUMPKIN.gif"}, {name: "Rusty Marzi", url: "marzigacha/RUSTY.gif"}],
+            common: [{name: "Barrel Marzi", url: "marzigacha/BARREL.gif"}, {name: "Big-Eyed Marzi", url: "marzigacha/BIG-EYED.gif"}, {name: "BottomHalf Marzi", url: "marzigacha/bottom.gif"}, {name: "Default Marzi", url: "marzigacha/Default.gif"}, {name: "LeftHalf Marzi", url: "marzigacha/LEFT.gif"}, {name: "Micro Marzi", url: "marzigacha/MICRO MARZI.gif"}, {name: "Pincushion Marzi", url: "marzigacha/PINCUSSION.gif"}, {name: "RightHalf Marzi", url: "marzigacha/RIGHT.gif"}, {name: "Tiny-Eyed Marzi", url: "marzigacha/TINY-EYED.gif"}, {name: "TopHalf Marzi", url: "marzigacha/top.gif"}, {name: "Upside down Marzi", url: "marzigacha/upside down.gif"}, {name: "Wide Marzi", url: "marzigacha/WIDE.gif"}]
+        };
 
-        function renderShelf(inventory) {
-            const container = document.getElementById('shelf-container');
-            container.innerHTML = '';
+        const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
+        const rarityColors = { epic: '#ffffff', ultrarare: '#ff21b9', rare: '#050df2', common: '#21ff7a' };
+        const sectionBorderColors = { epic: '#ff21b9', ultrarare: '#050df2', rare: '#21ff7a', common: '#ff21b9' };
+
+        function toggleSpoiler(btn) { btn.style.display = 'none'; btn.nextElementSibling.style.display = 'block'; }
+
+        async function loadUserShelf(twitch_username) {
+            if(!twitch_username) return;
             
+            document.getElementById('shelf-header').innerText = `${twitch_username.toUpperCase()}_COLLECTION`;
+            
+            showWindow('shelf-window');
+            const container = document.getElementById('shelf-container');
+            container.innerHTML = "LOADING...";
+            
+            const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
+            const userFound = data.filter(i => i.Ник.toLowerCase() === twitch_username.toLowerCase());
+            
+            const inventory = {};
+            userFound.forEach(i => {
+                const r = (i.Редкость || 'common').toString().trim().toLowerCase();
+                const item = (i.Предмет || '').toString().trim();
+                if(!inventory[r]) inventory[r] = {};
+                inventory[r][item] = true;
+            });
+
+            container.innerHTML = '';
             rarityOrder.forEach(r => {
                 if(!ALL_ITEMS[r]) return;
                 const section = document.createElement('div');
                 section.className = 'rarity-section';
-                section.innerHTML = `<h2>[${r.toUpperCase()}]</h2><div class="shelf" id="shelf-${r}"></div>`;
+                section.style.borderColor = sectionBorderColors[r];
+                
+                let titleClass = '';
+                if (r === 'epic') titleClass = 'glitch-text';
+                else if (r === 'ultrarare') titleClass = 'ultra-text';
+                
+                section.innerHTML = `<h2 style="color: ${rarityColors[r]}" class="${titleClass}">[${r.toUpperCase()}]</h2><div class="shelf" id="shelf-${r}"></div>`;
                 container.appendChild(section);
                 
                 const shelf = section.querySelector('.shelf');
                 ALL_ITEMS[r].forEach(item => {
                     const isFound = inventory[r]?.[item.name];
-                    // Добавляем класс редкости для CSS
+                    let borderClass = '';
+                    if (r === 'epic') borderClass = 'epic-border';
+                    else if (r === 'ultrarare') borderClass = 'ultra-border';
+                    
                     shelf.innerHTML += `
-                        <div class="card card-${r}">
+                        <div class="card ${borderClass}" style="border-color: ${rarityColors[r]}">
                             <img src="${isFound ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
                             ${isFound ? `<p class="reward-name">${item.name}</p>` : `
                                 <button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button>
@@ -82,6 +145,23 @@
                 });
             });
         }
+
+        async function renderTop() {
+            const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
+            const counts = {};
+            data.forEach(i => counts[i.Ник] = (counts[i.Ник] || 0) + 1);
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+            document.getElementById('top-list').innerHTML = sorted.map(i => 
+                `<li class="top-item" onclick="loadUserShelf('${i[0]}')">> ${i[0]} [${i[1]}]</li>`
+            ).join('');
+        }
+
+        function showWindow(id) {
+            document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        renderTop();
     </script>
 </body>
 </html>
