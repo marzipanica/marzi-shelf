@@ -19,14 +19,10 @@
         .card img { width: 80px; height: 80px; object-fit: contain; }
         .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-size: 10px; }
         
-        /* Цвета тиров */
         .text-common { color: #2ecc71; }
         .text-rare { color: #3498db; }
         .text-ultrarare { color: #9b59b6; }
-        .text-exclusive { color: #ff52b0; }
         .text-epic { color: #e67e22; }
-        .text-mythic { color: #e74c3c; }
-        .text-legendary { color: #f1c40f; }
     </style>
 </head>
 <body>
@@ -41,18 +37,15 @@
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
 
-        // Полный список всех предметов для сверки
+        // Список только для тех тиров, которые должны быть видны на "Полочке"
         const ALL_ITEMS = {
-            common: ["Default Marzi", "Upside down Marzi", "Micro Marzi", "Wide Marzi", "LeftHalf Marzi", "RightHalf Marzi", "Barrel Marzi", "Pincushion Marzi", "Big-Eyed Marzi", "Tiny-Eyed Marzi", "TopHalf Marzi", "BottomHalf Marzi"],
-            rare: ["Eva Marzi", "Bubblegum Marzi", "Haunted Marzi", "Rusty Marzi", "Midnight Marzi", "Noir Marzi", "Inverted Marzi", "Acid Marzi", "Pumpkin Marzi", "Albino Marzi"],
-            ultrarare: ["Diamond Marzi", "Holographic Marzi", "Golden Marzi", "Bad Signal Marzi"],
-            exclusive: ["Сигна на Экране до Конца Стрима"],
             epic: ["Biblically Accurate Marzi", "Bunny Marzi", "Sailor Marzi", "N7 Marzi", "Succubus Marzi"],
-            legendary: ["Дурацкий Рисунок Мышкой"],
-            mythic: ["Арт на Заказ"]
+            ultrarare: ["Diamond Marzi", "Holographic Marzi", "Golden Marzi", "Bad Signal Marzi"],
+            rare: ["Eva Marzi", "Bubblegum Marzi", "Haunted Marzi", "Rusty Marzi", "Midnight Marzi", "Noir Marzi", "Inverted Marzi", "Acid Marzi", "Pumpkin Marzi", "Albino Marzi"],
+            common: ["Default Marzi", "Upside down Marzi", "Micro Marzi", "Wide Marzi", "LeftHalf Marzi", "RightHalf Marzi", "Barrel Marzi", "Pincushion Marzi", "Big-Eyed Marzi", "Tiny-Eyed Marzi", "TopHalf Marzi", "BottomHalf Marzi"]
         };
 
-        const rarityOrder = ['mythic', 'legendary', 'epic', 'exclusive', 'ultrarare', 'rare', 'common'];
+        const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
 
         async function loadShelf() {
             const user = document.getElementById('userInput').value.toLowerCase();
@@ -75,8 +68,11 @@
                 container.innerHTML = '';
                 
                 rarityOrder.forEach(r => {
+                    // Если тира нет в списке для отображения (exclusive/legendary/mythic), пропускаем
+                    if (!ALL_ITEMS[r]) return;
+
                     const foundItems = inventory[r] || {};
-                    const totalPool = ALL_ITEMS[r] || [];
+                    const totalPool = ALL_ITEMS[r];
                     const foundCount = Object.keys(foundItems).length;
                     
                     container.innerHTML += `
@@ -93,10 +89,12 @@
                     totalPool.forEach(name => {
                         const count = foundItems[name] || 0;
                         const isLocked = count === 0;
+                        // Формируем имя файла (имя + .gif)
+                        const fileName = name + ".gif";
                         shelf.innerHTML += `
                             <div class="card ${isLocked ? 'locked' : ''}">
                                 ${count > 0 ? `<span class="count">${count}</span>` : ''}
-                                <img src="${isLocked ? 'https://via.placeholder.com/80?text=?' : SITE_BASE + 'marzigacha/' + name + '.gif'}" onerror="this.src='https://via.placeholder.com/80'">
+                                <img src="${isLocked ? 'https://via.placeholder.com/80?text=?' : SITE_BASE + 'marzigacha/' + fileName}" onerror="this.src='https://via.placeholder.com/80'">
                                 <p style="font-size: 10px;">${isLocked ? '???' : name}</p>
                             </div>
                         `;
