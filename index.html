@@ -7,30 +7,36 @@
         @font-face { font-family: 'BetterVCR'; src: url('marzigacha/better-vcr.woff') format('woff'); }
         body { background-color: #000; color: #21ff7a; font-family: 'BetterVCR', monospace; padding: 20px; cursor: crosshair; }
         
-        .header-panel { border: 3px solid #050df2; padding: 15px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
-        input { padding: 10px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.2em; }
-        button { padding: 10px 20px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1em; }
+        .header-panel { border: 3px solid #050df2; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
+        input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
+        button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; }
         
-        .window { border: 3px solid #ff21b9; background: #000; margin-bottom: 20px; display: none; }
+        .window { border: 4px solid #ff21b9; background: #000; margin-bottom: 20px; display: none; }
         .window.active { display: block; }
-        .win-header { background: #ff21b9; color: #fff; padding: 5px 10px; font-weight: bold; display: flex; justify-content: space-between; }
+        .win-header { background: #ff21b9; color: #fff; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; font-size: 1.5em; }
         
-        .top-list { list-style: none; padding: 20px; font-size: 1.5em; }
-        .top-item { cursor: pointer; padding: 5px; border-bottom: 1px solid #050df2; }
+        .top-list { list-style: none; padding: 20px; font-size: 2em; }
+        .top-item { cursor: pointer; padding: 10px; border-bottom: 2px solid #050df2; }
         .top-item:hover { color: #fff; background: #050df2; }
 
-        .rarity-section { margin-bottom: 30px; padding: 15px; border: 1px dashed #ff21b9; }
-        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { border: 2px solid #050df2; padding: 10px; text-align: center; background: #0a0a0a; }
-        .card img { width: 100px; height: 100px; image-rendering: pixelated; }
+        .rarity-section { margin-bottom: 50px; padding: 20px; border: 2px dashed #ff21b9; }
+        .rarity-section h2 { font-size: 2em; color: #ff21b9; }
         
-        .taskbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050df2; padding: 10px; display: flex; gap: 10px; }
+        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; }
+        .card { border: 3px solid #050df2; padding: 20px; text-align: center; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; }
+        .card img { width: 180px; height: 180px; image-rendering: pixelated; object-fit: contain; }
+        
+        .spoiler-btn { background: #000; border: 2px solid #21ff7a; color: #21ff7a; cursor: pointer; padding: 10px; margin-top: 15px; font-family: 'BetterVCR'; font-size: 1.2em; width: 100%; }
+        .hidden-name { display: none; font-size: 1.4em; margin-top: 15px; color: #fff; }
+        .reward-name { font-size: 1.4em; margin-top: 15px; color: #fff; }
+
+        .taskbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050df2; padding: 15px; display: flex; gap: 10px; z-index: 1000; }
     </style>
 </head>
 <body>
 
     <div class="header-panel">
-        <input type="text" id="userInput" placeholder="ENTER_NICKNAME...">
+        <input type="text" id="userInput" placeholder="NICKNAME...">
         <button onclick="loadUserShelf(document.getElementById('userInput').value)">INITIALIZE</button>
         <button onclick="showWindow('top-window')" style="border-color:#21ff7a">TOP_LIST</button>
     </div>
@@ -58,11 +64,16 @@
 
         const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
 
+        function toggleSpoiler(btn) {
+            btn.style.display = 'none';
+            btn.nextElementSibling.style.display = 'block';
+        }
+
         async function loadUserShelf(nickname) {
             if(!nickname) return;
             showWindow('shelf-window');
             const container = document.getElementById('shelf-container');
-            container.innerHTML = "LOADING...";
+            container.innerHTML = "LOADING DATA...";
             
             const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
             const userFound = data.filter(i => i.Ник.toLowerCase() === nickname.toLowerCase());
@@ -71,7 +82,7 @@
             userFound.forEach(i => {
                 const r = (i.Редкость || 'common').toLowerCase();
                 if(!inventory[r]) inventory[r] = {};
-                inventory[r][i.Предмет] = (inventory[r][i.Предмет] || 0) + 1;
+                inventory[r][i.Предмет] = true;
             });
 
             container.innerHTML = '';
@@ -84,11 +95,14 @@
                 
                 const shelf = section.querySelector('.shelf');
                 ALL_ITEMS[r].forEach(item => {
-                    const count = inventory[r]?.[item.name] || 0;
+                    const isFound = inventory[r]?.[item.name];
                     shelf.innerHTML += `
                         <div class="card">
-                            <img src="${count > 0 ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
-                            <p>${count > 0 ? item.name : '???'}</p>
+                            <img src="${isFound ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
+                            ${isFound ? `<p class="reward-name">${item.name}</p>` : `
+                                <button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button>
+                                <p class="hidden-name">${item.name}</p>
+                            `}
                         </div>
                     `;
                 });
