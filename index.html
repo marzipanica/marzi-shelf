@@ -23,8 +23,8 @@
     <div id="shelf" class="shelf"></div>
 
     <script>
-        // Твои настройки: автоматически подставляем путь
-        const BASE_IMG_URL = 'https://marzipanica.github.io/marzi-shelf/marzigacha/';
+        // Теперь скрипт добавляет только сам адрес сайта
+        const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
 
         async function loadShelf() {
@@ -45,8 +45,9 @@
                 }
 
                 userItems.forEach(i => {
-                    // Если в таблице просто имя файла (например, Default.gif), подставляем путь
-                    const imgUrl = i.Картинка.startsWith('http') ? i.Картинка : BASE_IMG_URL + i.Картинка;
+                    // Если в таблице написано "marzigacha/Default.gif", 
+                    // он превратит это в "https://marzipanica.github.io/marzi-shelf/marzigacha/Default.gif"
+                    const imgUrl = i.Картинка.startsWith('http') ? i.Картинка : SITE_BASE + i.Картинка;
                     
                     shelf.innerHTML += `
                         <div class="card">
