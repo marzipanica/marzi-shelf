@@ -35,14 +35,48 @@
 
     <script>
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
-        const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
-
-        // Список только для тех тиров, которые должны быть видны на "Полочке"
+        
+        // Сюда перенесены пути из твоего JS-скрипта
         const ALL_ITEMS = {
-            epic: ["Biblically Accurate Marzi", "Bunny Marzi", "Sailor Marzi", "N7 Marzi", "Succubus Marzi"],
-            ultrarare: ["Diamond Marzi", "Holographic Marzi", "Golden Marzi", "Bad Signal Marzi"],
-            rare: ["Eva Marzi", "Bubblegum Marzi", "Haunted Marzi", "Rusty Marzi", "Midnight Marzi", "Noir Marzi", "Inverted Marzi", "Acid Marzi", "Pumpkin Marzi", "Albino Marzi"],
-            common: ["Default Marzi", "Upside down Marzi", "Micro Marzi", "Wide Marzi", "LeftHalf Marzi", "RightHalf Marzi", "Barrel Marzi", "Pincushion Marzi", "Big-Eyed Marzi", "Tiny-Eyed Marzi", "TopHalf Marzi", "BottomHalf Marzi"]
+            epic: [
+                { name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif" },
+                { name: "Bunny Marzi", url: "marzigacha/BUNNY.gif" },
+                { name: "Sailor Marzi", url: "marzigacha/SAILOR.gif" },
+                { name: "N7 Marzi", url: "marzigacha/n7.gif" },
+                { name: "Succubus Marzi", url: "marzigacha/suc.gif" }
+            ],
+            ultrarare: [
+                { name: "Diamond Marzi", url: "marzigacha/DIAMOND.gif" },
+                { name: "Holographic Marzi", url: "marzigacha/HOLO.gif" },
+                { name: "Golden Marzi", url: "marzigacha/GOLDEN.gif" },
+                { name: "Bad Signal Marzi", url: "marzigacha/BADSIGNAL.gif" }
+            ],
+            rare: [
+                { name: "Eva Marzi", url: "marzigacha/EVA.gif" },
+                { name: "Bubblegum Marzi", url: "marzigacha/BUBBLEGUM.gif" },
+                { name: "Haunted Marzi", url: "marzigacha/HAUNTED.gif" },
+                { name: "Rusty Marzi", url: "marzigacha/RUSTY.gif" },
+                { name: "Midnight Marzi", url: "marzigacha/MIDNIGHT.gif" },
+                { name: "Noir Marzi", url: "marzigacha/NOIR.gif" },
+                { name: "Inverted Marzi", url: "marzigacha/INVERTED.gif" },
+                { name: "Acid Marzi", url: "marzigacha/ACID.gif" },
+                { name: "Pumpkin Marzi", url: "marzigacha/PUMPKIN.gif" },
+                { name: "Albino Marzi", url: "marzigacha/ALBINIO.gif" }
+            ],
+            common: [
+                { name: "Default Marzi", url: "marzigacha/Default.gif" },
+                { name: "Upside down Marzi", url: "marzigacha/upside down.gif" },
+                { name: "Micro Marzi", url: "marzigacha/MICRO MARZI.gif" },
+                { name: "Wide Marzi", url: "marzigacha/WIDE.gif" },
+                { name: "LeftHalf Marzi", url: "marzigacha/LEFT.gif" },
+                { name: "RightHalf Marzi", url: "marzigacha/RIGHT.gif" },
+                { name: "Barrel Marzi", url: "marzigacha/BARREL.gif" },
+                { name: "Pincushion Marzi", url: "marzigacha/PINCUSSION.gif" },
+                { name: "Big-Eyed Marzi", url: "marzigacha/BIG-EYED.gif" },
+                { name: "Tiny-Eyed Marzi", url: "marzigacha/TINY-EYED.gif" },
+                { name: "TopHalf Marzi", url: "marzigacha/top.gif" },
+                { name: "BottomHalf Marzi", url: "marzigacha/bottom.gif" }
+            ]
         };
 
         const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
@@ -50,57 +84,45 @@
         async function loadShelf() {
             const user = document.getElementById('userInput').value.toLowerCase();
             const container = document.getElementById('shelf-container');
-            container.innerHTML = 'Загрузка...';
+            const res = await fetch('https://sheetdb.io/api/v1/4pzptctzinluq');
+            const data = await res.json();
             
-            try {
-                const res = await fetch(SHEET_API_URL);
-                const data = await res.json();
+            const userFound = data.filter(i => i.Ник.toLowerCase() === user);
+            const inventory = {};
+            userFound.forEach(i => {
+                const r = (i.Редкость || 'common').toLowerCase();
+                if (!inventory[r]) inventory[r] = {};
+                inventory[r][i.Предмет] = (inventory[r][i.Предмет] || 0) + 1;
+            });
+            
+            container.innerHTML = '';
+            rarityOrder.forEach(r => {
+                const totalPool = ALL_ITEMS[r];
+                const foundItems = inventory[r] || {};
+                const foundCount = Object.keys(foundItems).length;
                 
-                const userFound = data.filter(i => i.Ник.toLowerCase() === user);
-                const inventory = {};
-                userFound.forEach(i => {
-                    const r = (i.Редкость || 'common').toLowerCase();
-                    if (!inventory[r]) inventory[r] = {};
-                    if (!inventory[r][i.Предмет]) inventory[r][i.Предмет] = 0;
-                    inventory[r][i.Предмет] += 1;
-                });
+                container.innerHTML += `
+                    <div class="rarity-section">
+                        <h2 class="rarity-title text-${r}">
+                            <span>${r.toUpperCase()}</span>
+                            <span>${foundCount} / ${totalPool.length}</span>
+                        </h2>
+                        <div class="shelf" id="shelf-${r}"></div>
+                    </div>
+                `;
                 
-                container.innerHTML = '';
-                
-                rarityOrder.forEach(r => {
-                    // Если тира нет в списке для отображения (exclusive/legendary/mythic), пропускаем
-                    if (!ALL_ITEMS[r]) return;
-
-                    const foundItems = inventory[r] || {};
-                    const totalPool = ALL_ITEMS[r];
-                    const foundCount = Object.keys(foundItems).length;
-                    
-                    container.innerHTML += `
-                        <div class="rarity-section">
-                            <h2 class="rarity-title text-${r}">
-                                <span>${r.toUpperCase()}</span>
-                                <span style="font-size: 16px;">${foundCount} / ${totalPool.length}</span>
-                            </h2>
-                            <div class="shelf" id="shelf-${r}"></div>
+                const shelf = document.getElementById(`shelf-${r}`);
+                totalPool.forEach(item => {
+                    const count = foundItems[item.name] || 0;
+                    shelf.innerHTML += `
+                        <div class="card ${count === 0 ? 'locked' : ''}">
+                            ${count > 0 ? `<span class="count">${count}</span>` : ''}
+                            <img src="${SITE_BASE + item.url}" onerror="this.src='https://via.placeholder.com/80'">
+                            <p style="font-size: 10px;">${count === 0 ? '???' : item.name}</p>
                         </div>
                     `;
-                    
-                    const shelf = document.getElementById(`shelf-${r}`);
-                    totalPool.forEach(name => {
-                        const count = foundItems[name] || 0;
-                        const isLocked = count === 0;
-                        // Формируем имя файла (имя + .gif)
-                        const fileName = name + ".gif";
-                        shelf.innerHTML += `
-                            <div class="card ${isLocked ? 'locked' : ''}">
-                                ${count > 0 ? `<span class="count">${count}</span>` : ''}
-                                <img src="${isLocked ? 'https://via.placeholder.com/80?text=?' : SITE_BASE + 'marzigacha/' + fileName}" onerror="this.src='https://via.placeholder.com/80'">
-                                <p style="font-size: 10px;">${isLocked ? '???' : name}</p>
-                            </div>
-                        `;
-                    });
                 });
-            } catch(e) { container.innerHTML = 'Ошибка загрузки.'; }
+            });
         }
     </script>
 </body>
