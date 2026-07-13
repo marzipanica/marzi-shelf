@@ -21,7 +21,7 @@
 
         .rarity-section { margin-bottom: 30px; padding: 15px; border: 1px dashed #ff21b9; }
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { border: 2px solid #050df2; padding: 10px; text-align: center; }
+        .card { border: 2px solid #050df2; padding: 10px; text-align: center; background: #0a0a0a; }
         .card img { width: 100px; height: 100px; image-rendering: pixelated; }
         
         .taskbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #050df2; padding: 10px; display: flex; gap: 10px; }
@@ -50,19 +50,53 @@
     <script>
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const ALL_ITEMS = {
-            epic: [{name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif"}, {name: "Bunny Marzi", url: "marzigacha/BUNNY.gif"}],
-            ultrarare: [{name: "Diamond Marzi", url: "marzigacha/DIAMOND.gif"}],
-            rare: [{name: "Eva Marzi", url: "marzigacha/EVA.gif"}],
-            common: [{name: "Default Marzi", url: "marzigacha/Default.gif"}]
+            epic: [{name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif"}, {name: "Bunny Marzi", url: "marzigacha/BUNNY.gif"}, {name: "N7 Marzi", url: "marzigacha/n7.gif"}, {name: "Sailor Marzi", url: "marzigacha/SAILOR.gif"}, {name: "Succubus Marzi", url: "marzigacha/suc.gif"}],
+            ultrarare: [{name: "Bad Signal Marzi", url: "marzigacha/BADSIGNAL.gif"}, {name: "Diamond Marzi", url: "marzigacha/DIAMOND.gif"}, {name: "Golden Marzi", url: "marzigacha/GOLDEN.gif"}, {name: "Holographic Marzi", url: "marzigacha/HOLO.gif"}],
+            rare: [{name: "Acid Marzi", url: "marzigacha/ACID.gif"}, {name: "Albino Marzi", url: "marzigacha/ALBINIO.gif"}, {name: "Bubblegum Marzi", url: "marzigacha/BUBBLEGUM.gif"}, {name: "Eva Marzi", url: "marzigacha/EVA.gif"}, {name: "Haunted Marzi", url: "marzigacha/HAUNTED.gif"}, {name: "Inverted Marzi", url: "marzigacha/INVERTED.gif"}, {name: "Midnight Marzi", url: "marzigacha/MIDNIGHT.gif"}, {name: "Noir Marzi", url: "marzigacha/NOIR.gif"}, {name: "Pumpkin Marzi", url: "marzigacha/PUMPKIN.gif"}, {name: "Rusty Marzi", url: "marzigacha/RUSTY.gif"}],
+            common: [{name: "Barrel Marzi", url: "marzigacha/BARREL.gif"}, {name: "Big-Eyed Marzi", url: "marzigacha/BIG-EYED.gif"}, {name: "BottomHalf Marzi", url: "marzigacha/bottom.gif"}, {name: "Default Marzi", url: "marzigacha/Default.gif"}, {name: "LeftHalf Marzi", url: "marzigacha/LEFT.gif"}, {name: "Micro Marzi", url: "marzigacha/MICRO MARZI.gif"}, {name: "Pincushion Marzi", url: "marzigacha/PINCUSSION.gif"}, {name: "RightHalf Marzi", url: "marzigacha/RIGHT.gif"}, {name: "Tiny-Eyed Marzi", url: "marzigacha/TINY-EYED.gif"}, {name: "TopHalf Marzi", url: "marzigacha/top.gif"}, {name: "Upside down Marzi", url: "marzigacha/upside down.gif"}, {name: "Wide Marzi", url: "marzigacha/WIDE.gif"}]
         };
 
-        async function fetchData() {
-            const res = await fetch('https://sheetdb.io/api/v1/4pzptctzinluq');
-            return await res.json();
+        const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
+
+        async function loadUserShelf(nickname) {
+            if(!nickname) return;
+            showWindow('shelf-window');
+            const container = document.getElementById('shelf-container');
+            container.innerHTML = "LOADING...";
+            
+            const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
+            const userFound = data.filter(i => i.Ник.toLowerCase() === nickname.toLowerCase());
+            
+            const inventory = {};
+            userFound.forEach(i => {
+                const r = (i.Редкость || 'common').toLowerCase();
+                if(!inventory[r]) inventory[r] = {};
+                inventory[r][i.Предмет] = (inventory[r][i.Предмет] || 0) + 1;
+            });
+
+            container.innerHTML = '';
+            rarityOrder.forEach(r => {
+                if(!ALL_ITEMS[r]) return;
+                const section = document.createElement('div');
+                section.className = 'rarity-section';
+                section.innerHTML = `<h2>[${r.toUpperCase()}]</h2><div class="shelf" id="shelf-${r}"></div>`;
+                container.appendChild(section);
+                
+                const shelf = section.querySelector('.shelf');
+                ALL_ITEMS[r].forEach(item => {
+                    const count = inventory[r]?.[item.name] || 0;
+                    shelf.innerHTML += `
+                        <div class="card">
+                            <img src="${count > 0 ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
+                            <p>${count > 0 ? item.name : '???'}</p>
+                        </div>
+                    `;
+                });
+            });
         }
 
         async function renderTop() {
-            const data = await fetchData();
+            const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
             const counts = {};
             data.forEach(i => counts[i.Ник] = (counts[i.Ник] || 0) + 1);
             const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
@@ -86,14 +120,6 @@
                 btn.onclick = () => showWindow(id);
                 document.getElementById('taskbar').appendChild(btn);
             }
-        }
-
-        function loadUserShelf(nickname) {
-            if(!nickname) return;
-            showWindow('shelf-window');
-            document.getElementById('shelf-container').innerHTML = `LOADING ${nickname.toUpperCase()}...`;
-            // Здесь должна быть логика отрисовки полочки (как в предыдущих ответах)
-            // ...
         }
 
         renderTop();
