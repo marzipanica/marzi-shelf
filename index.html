@@ -15,9 +15,11 @@
         
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; }
         .card { background: #131722; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; position: relative; }
-        .card.locked { filter: grayscale(1) opacity(0.5); }
         .card img { width: 80px; height: 80px; object-fit: contain; }
         .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-size: 10px; }
+        
+        .spoiler-btn { font-size: 9px; background: #2d3748; border: none; color: #a0aec0; cursor: pointer; padding: 5px; margin-top: 5px; border-radius: 3px; }
+        .hidden-name { display: none; font-size: 10px; color: #718096; }
         
         .text-common { color: #2ecc71; }
         .text-rare { color: #3498db; }
@@ -36,50 +38,55 @@
     <script>
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         
-        // Сюда перенесены пути из твоего JS-скрипта
         const ALL_ITEMS = {
             epic: [
                 { name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif" },
                 { name: "Bunny Marzi", url: "marzigacha/BUNNY.gif" },
-                { name: "Sailor Marzi", url: "marzigacha/SAILOR.gif" },
                 { name: "N7 Marzi", url: "marzigacha/n7.gif" },
+                { name: "Sailor Marzi", url: "marzigacha/SAILOR.gif" },
                 { name: "Succubus Marzi", url: "marzigacha/suc.gif" }
             ],
             ultrarare: [
+                { name: "Bad Signal Marzi", url: "marzigacha/BADSIGNAL.gif" },
                 { name: "Diamond Marzi", url: "marzigacha/DIAMOND.gif" },
-                { name: "Holographic Marzi", url: "marzigacha/HOLO.gif" },
                 { name: "Golden Marzi", url: "marzigacha/GOLDEN.gif" },
-                { name: "Bad Signal Marzi", url: "marzigacha/BADSIGNAL.gif" }
+                { name: "Holographic Marzi", url: "marzigacha/HOLO.gif" }
             ],
             rare: [
-                { name: "Eva Marzi", url: "marzigacha/EVA.gif" },
+                { name: "Acid Marzi", url: "marzigacha/ACID.gif" },
+                { name: "Albino Marzi", url: "marzigacha/ALBINIO.gif" },
                 { name: "Bubblegum Marzi", url: "marzigacha/BUBBLEGUM.gif" },
+                { name: "Eva Marzi", url: "marzigacha/EVA.gif" },
                 { name: "Haunted Marzi", url: "marzigacha/HAUNTED.gif" },
-                { name: "Rusty Marzi", url: "marzigacha/RUSTY.gif" },
+                { name: "Inverted Marzi", url: "marzigacha/INVERTED.gif" },
                 { name: "Midnight Marzi", url: "marzigacha/MIDNIGHT.gif" },
                 { name: "Noir Marzi", url: "marzigacha/NOIR.gif" },
-                { name: "Inverted Marzi", url: "marzigacha/INVERTED.gif" },
-                { name: "Acid Marzi", url: "marzigacha/ACID.gif" },
                 { name: "Pumpkin Marzi", url: "marzigacha/PUMPKIN.gif" },
-                { name: "Albino Marzi", url: "marzigacha/ALBINIO.gif" }
+                { name: "Rusty Marzi", url: "marzigacha/RUSTY.gif" }
             ],
             common: [
-                { name: "Default Marzi", url: "marzigacha/Default.gif" },
-                { name: "Upside down Marzi", url: "marzigacha/upside down.gif" },
-                { name: "Micro Marzi", url: "marzigacha/MICRO MARZI.gif" },
-                { name: "Wide Marzi", url: "marzigacha/WIDE.gif" },
-                { name: "LeftHalf Marzi", url: "marzigacha/LEFT.gif" },
-                { name: "RightHalf Marzi", url: "marzigacha/RIGHT.gif" },
                 { name: "Barrel Marzi", url: "marzigacha/BARREL.gif" },
-                { name: "Pincushion Marzi", url: "marzigacha/PINCUSSION.gif" },
                 { name: "Big-Eyed Marzi", url: "marzigacha/BIG-EYED.gif" },
+                { name: "BottomHalf Marzi", url: "marzigacha/bottom.gif" },
+                { name: "Default Marzi", url: "marzigacha/Default.gif" },
+                { name: "LeftHalf Marzi", url: "marzigacha/LEFT.gif" },
+                { name: "Micro Marzi", url: "marzigacha/MICRO MARZI.gif" },
+                { name: "Pincushion Marzi", url: "marzigacha/PINCUSSION.gif" },
+                { name: "RightHalf Marzi", url: "marzigacha/RIGHT.gif" },
                 { name: "Tiny-Eyed Marzi", url: "marzigacha/TINY-EYED.gif" },
                 { name: "TopHalf Marzi", url: "marzigacha/top.gif" },
-                { name: "BottomHalf Marzi", url: "marzigacha/bottom.gif" }
+                { name: "Upside down Marzi", url: "marzigacha/upside down.gif" },
+                { name: "Wide Marzi", url: "marzigacha/WIDE.gif" }
             ]
         };
 
         const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
+
+        function toggleSpoiler(btn) {
+            const nameEl = btn.nextElementSibling;
+            nameEl.style.display = 'block';
+            btn.style.display = 'none';
+        }
 
         async function loadShelf() {
             const user = document.getElementById('userInput').value.toLowerCase();
@@ -114,11 +121,16 @@
                 const shelf = document.getElementById(`shelf-${r}`);
                 totalPool.forEach(item => {
                     const count = foundItems[item.name] || 0;
+                    const isLocked = count === 0;
+                    
                     shelf.innerHTML += `
-                        <div class="card ${count === 0 ? 'locked' : ''}">
+                        <div class="card">
                             ${count > 0 ? `<span class="count">${count}</span>` : ''}
-                            <img src="${SITE_BASE + item.url}" onerror="this.src='https://via.placeholder.com/80'">
-                            <p style="font-size: 10px;">${count === 0 ? '???' : item.name}</p>
+                            <img src="${isLocked ? SITE_BASE + 'marzigacha/BLANK.gif' : SITE_BASE + item.url}">
+                            ${isLocked ? `
+                                <button class="spoiler-btn" onclick="toggleSpoiler(this)">[CПОЙЛЕР: Показать название награды]</button>
+                                <p class="hidden-name">${item.name}</p>
+                            ` : `<p style="font-size: 10px;">${item.name}</p>`}
                         </div>
                     `;
                 });
