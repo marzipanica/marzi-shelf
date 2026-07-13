@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Полочка c Наградами Марцигачи</title>
+    <title>Полочка Марци</title>
     <style>
         body { background: #090b0e; color: white; font-family: sans-serif; padding: 40px; }
         h1 { text-align: center; color: #a0aec0; }
@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-    <h1>Моя Полочка с Наградами Марцигачи</h1>
+    <h1>Моя Полочка Марци</h1>
     <div class="controls">
         <input type="text" id="userInput" placeholder="Введи свой ник...">
         <button onclick="loadShelf()">Показать</button>
@@ -23,14 +23,17 @@
     <div id="shelf" class="shelf"></div>
 
     <script>
+        // Твои настройки: автоматически подставляем путь
+        const BASE_IMG_URL = 'https://marzipanica.github.io/marzi-shelf/marzigacha/';
+        const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
+
         async function loadShelf() {
             const user = document.getElementById('userInput').value;
             const shelf = document.getElementById('shelf');
             shelf.innerHTML = 'Загрузка...';
             
             try {
-                // Твоя API ссылка
-                const res = await fetch('https://sheetdb.io/api/v1/4pzptctzinluq');
+                const res = await fetch(SHEET_API_URL);
                 const data = await res.json();
                 
                 shelf.innerHTML = '';
@@ -42,9 +45,12 @@
                 }
 
                 userItems.forEach(i => {
+                    // Если в таблице просто имя файла (например, Default.gif), подставляем путь
+                    const imgUrl = i.Картинка.startsWith('http') ? i.Картинка : BASE_IMG_URL + i.Картинка;
+                    
                     shelf.innerHTML += `
                         <div class="card">
-                            <img src="${i.Картинка}" onerror="this.src='https://via.placeholder.com/100'">
+                            <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/100'">
                             <p style="font-size: 12px;">${i.Предмет}</p>
                         </div>
                     `;
