@@ -5,30 +5,26 @@
     <title>Полочка Марци</title>
     <style>
         body { background: #090b0e; color: white; font-family: sans-serif; padding: 40px; }
-        h1 { text-align: center; color: #a0aec0; }
-        .controls { text-align: center; margin-bottom: 30px; }
-        input { padding: 10px; width: 250px; border-radius: 5px; border: none; }
-        button { padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px; }
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; max-width: 1000px; margin: auto; }
-        .card { background: #131722; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; }
+        .card { background: #131722; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; position: relative; }
         .card img { width: 100px; height: 100px; object-fit: contain; }
+        .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Моя Полочка Марци</h1>
-    <div class="controls">
-        <input type="text" id="userInput" placeholder="Введи свой ник...">
+    <h1>Полочка Марци</h1>
+    <div style="text-align:center; margin-bottom:30px;">
+        <input type="text" id="userInput" placeholder="Введи ник...">
         <button onclick="loadShelf()">Показать</button>
     </div>
     <div id="shelf" class="shelf"></div>
 
     <script>
-        // Теперь скрипт добавляет только сам адрес сайта
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
 
         async function loadShelf() {
-            const user = document.getElementById('userInput').value;
+            const user = document.getElementById('userInput').value.toLowerCase();
             const shelf = document.getElementById('shelf');
             shelf.innerHTML = 'Загрузка...';
             
@@ -36,29 +32,28 @@
                 const res = await fetch(SHEET_API_URL);
                 const data = await res.json();
                 
-                shelf.innerHTML = '';
-                const userItems = data.filter(i => i.Ник.toLowerCase() === user.toLowerCase());
+                // Группируем награды
+                const inventory = {};
+                data.filter(i => i.Ник.toLowerCase() === user).forEach(i => {
+                    if (!inventory[i.Предмет]) {
+                        inventory[i.Предмет] = { count: 0, img: i.Картинка };
+                    }
+                    inventory[i.Предмет].count += 1;
+                });
                 
-                if (userItems.length === 0) {
-                    shelf.innerHTML = '<p>Ничего не найдено. Крути гачу!</p>';
-                    return;
-                }
-
-                userItems.forEach(i => {
-                    // Если в таблице написано "marzigacha/Default.gif", 
-                    // он превратит это в "https://marzipanica.github.io/marzi-shelf/marzigacha/Default.gif"
-                    const imgUrl = i.Картинка.startsWith('http') ? i.Картинка : SITE_BASE + i.Картинка;
-                    
+                shelf.innerHTML = Object.keys(inventory).length === 0 ? '<p>Ничего нет!</p>' : '';
+                
+                for (const [name, item] of Object.entries(inventory)) {
+                    const imgUrl = item.img.startsWith('http') ? item.img : SITE_BASE + item.img;
                     shelf.innerHTML += `
                         <div class="card">
+                            <span class="count">${item.count}</span>
                             <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/100'">
-                            <p style="font-size: 12px;">${i.Предмет}</p>
+                            <p style="font-size: 12px;">${name}</p>
                         </div>
                     `;
-                });
-            } catch(e) {
-                shelf.innerHTML = '<p>Ошибка загрузки таблицы.</p>';
-            }
+                }
+            } catch(e) { shelf.innerHTML = 'Ошибка загрузки.'; }
         }
     </script>
 </body>
