@@ -10,14 +10,23 @@
         input { padding: 10px; width: 250px; border-radius: 5px; border: none; }
         button { padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px; }
         
-        /* Стили для секций по редкости */
         .rarity-section { margin-bottom: 40px; }
-        .rarity-title { color: #f1c40f; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; }
+        .rarity-title { padding-bottom: 10px; border-bottom: 2px solid #333; display: flex; justify-content: space-between; align-items: center; }
         
-        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; }
         .card { background: #131722; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; position: relative; }
+        .card.locked { filter: grayscale(1) opacity(0.5); }
         .card img { width: 80px; height: 80px; object-fit: contain; }
-        .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-weight: bold; font-size: 10px; }
+        .count { position: absolute; top: 5px; right: 5px; background: #e74c3c; padding: 2px 8px; border-radius: 50%; font-size: 10px; }
+        
+        /* Цвета тиров */
+        .text-common { color: #2ecc71; }
+        .text-rare { color: #3498db; }
+        .text-ultrarare { color: #9b59b6; }
+        .text-exclusive { color: #ff52b0; }
+        .text-epic { color: #e67e22; }
+        .text-mythic { color: #e74c3c; }
+        .text-legendary { color: #f1c40f; }
     </style>
 </head>
 <body>
@@ -32,8 +41,18 @@
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const SHEET_API_URL = 'https://sheetdb.io/api/v1/4pzptctzinluq';
 
-        // Порядок, в котором выводить колонки
-        const rarityOrder = ['epic', 'ultrarare', 'rare', 'common'];
+        // Полный список всех предметов для сверки
+        const ALL_ITEMS = {
+            common: ["Default Marzi", "Upside down Marzi", "Micro Marzi", "Wide Marzi", "LeftHalf Marzi", "RightHalf Marzi", "Barrel Marzi", "Pincushion Marzi", "Big-Eyed Marzi", "Tiny-Eyed Marzi", "TopHalf Marzi", "BottomHalf Marzi"],
+            rare: ["Eva Marzi", "Bubblegum Marzi", "Haunted Marzi", "Rusty Marzi", "Midnight Marzi", "Noir Marzi", "Inverted Marzi", "Acid Marzi", "Pumpkin Marzi", "Albino Marzi"],
+            ultrarare: ["Diamond Marzi", "Holographic Marzi", "Golden Marzi", "Bad Signal Marzi"],
+            exclusive: ["Сигна на Экране до Конца Стрима"],
+            epic: ["Biblically Accurate Marzi", "Bunny Marzi", "Sailor Marzi", "N7 Marzi", "Succubus Marzi"],
+            legendary: ["Дурацкий Рисунок Мышкой"],
+            mythic: ["Арт на Заказ"]
+        };
+
+        const rarityOrder = ['mythic', 'legendary', 'epic', 'exclusive', 'ultrarare', 'rare', 'common'];
 
         async function loadShelf() {
             const user = document.getElementById('userInput').value.toLowerCase();
@@ -44,37 +63,44 @@
                 const res = await fetch(SHEET_API_URL);
                 const data = await res.json();
                 
-                const userItems = data.filter(i => i.Ник.toLowerCase() === user);
-                if (userItems.length === 0) { container.innerHTML = '<p>Ничего не найдено.</p>'; return; }
-
-                // Группируем по редкости
-                const grouped = {};
-                userItems.forEach(i => {
+                const userFound = data.filter(i => i.Ник.toLowerCase() === user);
+                const inventory = {};
+                userFound.forEach(i => {
                     const r = (i.Редкость || 'common').toLowerCase();
-                    if (!grouped[r]) grouped[r] = {};
-                    if (!grouped[r][i.Предмет]) grouped[r][i.Предмет] = { count: 0, img: i.Картинка };
-                    grouped[r][i.Предмет].count += 1;
+                    if (!inventory[r]) inventory[r] = {};
+                    if (!inventory[r][i.Предмет]) inventory[r][i.Предмет] = 0;
+                    inventory[r][i.Предмет] += 1;
                 });
                 
                 container.innerHTML = '';
                 
-                // Выводим каждую группу
                 rarityOrder.forEach(r => {
-                    if (grouped[r]) {
-                        container.innerHTML += `<div class="rarity-section"><h2 class="rarity-title">${r}</h2><div class="shelf" id="shelf-${r}"></div></div>`;
-                        const shelf = document.getElementById(`shelf-${r}`);
-                        
-                        for (const [name, item] of Object.entries(grouped[r])) {
-                            const imgUrl = item.img.startsWith('http') ? item.img : SITE_BASE + item.img;
-                            shelf.innerHTML += `
-                                <div class="card">
-                                    <span class="count">${item.count}</span>
-                                    <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/100'">
-                                    <p style="font-size: 10px;">${name}</p>
-                                </div>
-                            `;
-                        }
-                    }
+                    const foundItems = inventory[r] || {};
+                    const totalPool = ALL_ITEMS[r] || [];
+                    const foundCount = Object.keys(foundItems).length;
+                    
+                    container.innerHTML += `
+                        <div class="rarity-section">
+                            <h2 class="rarity-title text-${r}">
+                                <span>${r.toUpperCase()}</span>
+                                <span style="font-size: 16px;">${foundCount} / ${totalPool.length}</span>
+                            </h2>
+                            <div class="shelf" id="shelf-${r}"></div>
+                        </div>
+                    `;
+                    
+                    const shelf = document.getElementById(`shelf-${r}`);
+                    totalPool.forEach(name => {
+                        const count = foundItems[name] || 0;
+                        const isLocked = count === 0;
+                        shelf.innerHTML += `
+                            <div class="card ${isLocked ? 'locked' : ''}">
+                                ${count > 0 ? `<span class="count">${count}</span>` : ''}
+                                <img src="${isLocked ? 'https://via.placeholder.com/80?text=?' : SITE_BASE + 'marzigacha/' + name + '.gif'}" onerror="this.src='https://via.placeholder.com/80'">
+                                <p style="font-size: 10px;">${isLocked ? '???' : name}</p>
+                            </div>
+                        `;
+                    });
                 });
             } catch(e) { container.innerHTML = 'Ошибка загрузки.'; }
         }
