@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Полочка Марци</title>
+    <style>
+        body { background: #090b0e; color: white; font-family: sans-serif; padding: 40px; }
+        h1 { text-align: center; color: #a0aec0; }
+        .controls { text-align: center; margin-bottom: 30px; }
+        input { padding: 10px; width: 250px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px; }
+        .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; max-width: 1000px; margin: auto; }
+        .card { background: #131722; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #2d3748; }
+        .card img { width: 100px; height: 100px; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <h1>Моя Полочка Марци</h1>
+    <div class="controls">
+        <input type="text" id="userInput" placeholder="Введи свой ник...">
+        <button onclick="loadShelf()">Показать</button>
+    </div>
+    <div id="shelf" class="shelf"></div>
+
+    <script>
+        async function loadShelf() {
+            const user = document.getElementById('userInput').value;
+            const shelf = document.getElementById('shelf');
+            shelf.innerHTML = 'Загрузка...';
+            
+            try {
+                // Твоя API ссылка
+                const res = await fetch('https://sheetdb.io/api/v1/4pzptctzinluq');
+                const data = await res.json();
+                
+                shelf.innerHTML = '';
+                const userItems = data.filter(i => i.Ник.toLowerCase() === user.toLowerCase());
+                
+                if (userItems.length === 0) {
+                    shelf.innerHTML = '<p>Ничего не найдено. Крути гачу!</p>';
+                    return;
+                }
+
+                userItems.forEach(i => {
+                    shelf.innerHTML += `
+                        <div class="card">
+                            <img src="${i.Картинка}" onerror="this.src='https://via.placeholder.com/100'">
+                            <p style="font-size: 12px;">${i.Предмет}</p>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                shelf.innerHTML = '<p>Ошибка загрузки таблицы.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
