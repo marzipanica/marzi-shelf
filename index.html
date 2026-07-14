@@ -37,6 +37,8 @@
 
         .header-panel { border: 3px solid #050df2; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
         input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
+        
+        /* Общий стиль для всех кнопок */
         button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; transition: 0.2s; }
         button:hover { background: #21ff7a; color: #000; }
         
@@ -64,7 +66,7 @@
     <div class="header-panel">
         <input type="text" id="userInput" placeholder="TWITCH_USERNAME...">
         <button onclick="loadUserShelf(document.getElementById('userInput').value)">INITIALIZE</button>
-        <button onclick="showWindow('top-window')" style="border-color:#21ff7a">TOP_LIST</button>
+        <button onclick="showWindow('top-window')">TOP_LIST</button>
     </div>
 
     <div id="top-window" class="window active">
@@ -115,6 +117,10 @@
             container.innerHTML = '';
             rarityOrder.forEach(r => {
                 if(!ALL_ITEMS[r]) return;
+                
+                const foundCount = ALL_ITEMS[r].filter(item => inventory[r]?.[item.name]).length;
+                const totalCount = ALL_ITEMS[r].length;
+                
                 const section = document.createElement('div');
                 section.className = 'rarity-section';
                 section.style.borderColor = sectionBorderColors[r];
@@ -123,7 +129,7 @@
                 if (r === 'epic') titleClass = 'glitch-text';
                 else if (r === 'ultrarare') titleClass = 'ultra-text';
                 
-                section.innerHTML = `<h2 style="color: ${rarityColors[r]}" class="${titleClass}">[${r.toUpperCase()}]</h2><div class="shelf" id="shelf-${r}"></div>`;
+                section.innerHTML = `<h2 style="color: ${rarityColors[r]}" class="${titleClass}">[${r.toUpperCase()}]_${foundCount}/${totalCount}</h2><div class="shelf" id="shelf-${r}"></div>`;
                 container.appendChild(section);
                 
                 const shelf = section.querySelector('.shelf');
