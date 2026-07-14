@@ -35,10 +35,9 @@
         .epic-border { animation: border-glitch 3s infinite ease-in-out; border: 3px solid #fff !important; }
         .ultra-border { animation: ultra-border-glitch 3s infinite ease-in-out; border: 3px solid #ff21b9 !important; }
 
-        .header-panel { border: 3px solid #050df2; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
+        .header-panel { border: none !important; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
         input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
         
-        /* Общий стиль для всех кнопок */
         button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; transition: 0.2s; }
         button:hover { background: #21ff7a; color: #000; }
         
@@ -64,7 +63,7 @@
 <body>
 
     <div class="header-panel">
-        <input type="text" id="userInput" placeholder="TWITCH_USERNAME...">
+        <input type="text" id="userInput" placeholder="TWITCH_USERNAME">
         <button onclick="loadUserShelf(document.getElementById('userInput').value)">INITIALIZE</button>
         <button onclick="showWindow('top-window')">TOP_LIST</button>
     </div>
