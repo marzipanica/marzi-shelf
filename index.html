@@ -5,8 +5,18 @@
     <title>GACHAPANIC_COLLECTION v1.0</title>
     <style>
         @font-face { font-family: 'BetterVCR'; src: url('marzigacha/better-vcr.woff') format('woff'); }
-        body { background-color: #000; color: #21ff7a; font-family: 'BetterVCR', monospace; padding: 20px; cursor: crosshair; }
         
+        /* Паттерн на весь фон */
+        body { 
+            background-color: #000; 
+            background-image: url('marzigacha/pattern.jpg'); 
+            background-repeat: repeat;
+            color: #21ff7a; font-family: 'BetterVCR', monospace; padding: 20px; cursor: crosshair; 
+        }
+        
+        /* Заливка для окон, чтобы текст читался поверх паттерна */
+        .window, .header-panel { background: rgba(0, 0, 0, 0.9) !important; }
+
         @keyframes shadow-glitch { 0%, 100% { text-shadow: 2px 0 #ff21b9, -2px 0 #050df2; } 50% { text-shadow: -2px 0 #ff21b9, 2px 0 #050df2; } }
         @keyframes border-glitch { 0%, 100% { box-shadow: 0 0 0 transparent; } 30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #ff21b9; } 70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #ff21b9; } }
         @keyframes ultra-shadow-glitch { 0%, 100% { text-shadow: 2px 0 #050df2, -2px 0 #050df2; } 50% { text-shadow: -2px 0 #050df2, 2px 0 #050df2; } }
@@ -17,12 +27,12 @@
         .epic-border { animation: border-glitch 3s infinite ease-in-out; border: 3px solid #fff !important; }
         .ultra-border { animation: ultra-border-glitch 3s infinite ease-in-out; border: 3px solid #ff21b9 !important; }
 
-        .header-panel { border: none !important; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
+        .header-panel { border: none !important; padding: 20px; margin-bottom: 20px; text-align: center; }
         input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
         button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; transition: 0.2s; }
         button:hover { background: #21ff7a; color: #000; }
         
-        .window { border: 4px solid #ff21b9; background: #000; margin-bottom: 20px; display: none; }
+        .window { border: 4px solid #ff21b9; margin-bottom: 20px; display: none; }
         .window.active { display: block; }
         .win-header { background: #ff21b9; color: #fff; padding: 10px; font-weight: bold; font-size: 1.5em; }
         
@@ -33,15 +43,11 @@
         .rarity-section { margin-bottom: 50px; padding: 20px; border: 3px dashed; }
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; }
         
-        /* Добавлен паттерн в карточки */
         .card { 
             padding: 20px; text-align: center; 
-            background-image: url('marzigacha/pattern.jpg'); 
-            background-repeat: repeat;
+            background: #000; /* Убрали паттерн отсюда */
             display: flex; flex-direction: column; align-items: center; border: 3px solid; overflow: hidden; position: relative; 
         }
-        /* Внутренний слой для затемнения */
-        .card-inner { background: rgba(0,0,0,0.85); width: 100%; padding: 10px; }
         
         .card img { width: 180px; height: 180px; image-rendering: pixelated; object-fit: contain; }
         
@@ -129,11 +135,9 @@
                     const isFound = count > 0;
                     shelf.innerHTML += `
                         <div class="card ${r === 'epic' ? 'epic-border' : r === 'ultrarare' ? 'ultra-border' : ''}" style="border-color: ${rarityColors[r]}">
-                            <div class="card-inner">
-                                ${count > 1 ? `<div class="duplicate-badge" style="border-color: ${rarityColors[r]}; color: ${rarityColors[r]}">x${count}</div>` : ''}
-                                <img src="${isFound ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
-                                ${isFound ? `<p class="reward-name">${item.name}</p>` : `<button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button><p class="hidden-name">${item.name}</p>`}
-                            </div>
+                            ${count > 1 ? `<div class="duplicate-badge" style="border-color: ${rarityColors[r]}; color: ${rarityColors[r]}">x${count}</div>` : ''}
+                            <img src="${isFound ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
+                            ${isFound ? `<p class="reward-name">${item.name}</p>` : `<button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button><p class="hidden-name">${item.name}</p>`}
                         </div>
                     `;
                 });
