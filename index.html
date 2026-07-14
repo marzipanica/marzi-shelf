@@ -7,37 +7,18 @@
         @font-face { font-family: 'BetterVCR'; src: url('marzigacha/better-vcr.woff') format('woff'); }
         body { background-color: #000; color: #21ff7a; font-family: 'BetterVCR', monospace; padding: 20px; cursor: crosshair; }
         
-        /* Анимации EPIC (Сине-розовые) */
-        @keyframes shadow-glitch {
-            0%, 100% { text-shadow: 2px 0 #ff21b9, -2px 0 #050df2; }
-            50% { text-shadow: -2px 0 #ff21b9, 2px 0 #050df2; }
-        }
-        @keyframes border-glitch {
-            0%, 100% { box-shadow: 0 0 0 transparent; }
-            30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #ff21b9; }
-            70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #ff21b9; }
-        }
-
-        /* Анимации ULTRARARE (Чисто синие тени) */
-        @keyframes ultra-shadow-glitch {
-            0%, 100% { text-shadow: 2px 0 #050df2, -2px 0 #050df2; }
-            50% { text-shadow: -2px 0 #050df2, 2px 0 #050df2; }
-        }
-        @keyframes ultra-border-glitch {
-            0%, 100% { box-shadow: 0 0 0 transparent; }
-            30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #050df2; }
-            70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #050df2; }
-        }
+        @keyframes shadow-glitch { 0%, 100% { text-shadow: 2px 0 #ff21b9, -2px 0 #050df2; } 50% { text-shadow: -2px 0 #ff21b9, 2px 0 #050df2; } }
+        @keyframes border-glitch { 0%, 100% { box-shadow: 0 0 0 transparent; } 30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #ff21b9; } 70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #ff21b9; } }
+        @keyframes ultra-shadow-glitch { 0%, 100% { text-shadow: 2px 0 #050df2, -2px 0 #050df2; } 50% { text-shadow: -2px 0 #050df2, 2px 0 #050df2; } }
+        @keyframes ultra-border-glitch { 0%, 100% { box-shadow: 0 0 0 transparent; } 30% { box-shadow: 3.5px 0 #050df2, -3.5px 0 #050df2; } 70% { box-shadow: -3.5px 0 #050df2, 3.5px 0 #050df2; } }
 
         .glitch-text { animation: shadow-glitch 3s infinite ease-in-out; color: #fff; display: inline-block; }
         .ultra-text { animation: ultra-shadow-glitch 3s infinite ease-in-out; color: #fff; display: inline-block; }
-        
         .epic-border { animation: border-glitch 3s infinite ease-in-out; border: 3px solid #fff !important; }
         .ultra-border { animation: ultra-border-glitch 3s infinite ease-in-out; border: 3px solid #ff21b9 !important; }
 
         .header-panel { border: none !important; padding: 20px; margin-bottom: 20px; text-align: center; background: #0a0a0a; }
         input { padding: 15px; background: #000; border: 2px solid #21ff7a; color: #21ff7a; font-family: 'BetterVCR'; font-size: 1.5em; width: 300px; text-align: center; }
-        
         button { padding: 15px 25px; cursor: pointer; background: #050df2; color: #fff; border: 2px solid #ff21b9; font-family: 'BetterVCR'; font-size: 1.2em; transition: 0.2s; }
         button:hover { background: #21ff7a; color: #000; }
         
@@ -50,14 +31,22 @@
         .top-item:hover { color: #fff; background: #050df2; }
 
         .rarity-section { margin-bottom: 50px; padding: 20px; border: 3px dashed; }
-        
         .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; }
         .card { padding: 20px; text-align: center; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; border: 3px solid; overflow: hidden; position: relative; }
         .card img { width: 180px; height: 180px; image-rendering: pixelated; object-fit: contain; }
         
+        /* Стили для счетчика дубликатов */
+        .duplicate-badge { 
+            position: absolute; top: 10px; right: 10px; 
+            background: transparent; 
+            padding: 2px 6px; 
+            font-size: 1.2em; 
+            border: 2px solid; 
+        }
+        
         .spoiler-btn { background: #000; border: 2px solid #21ff7a; color: #21ff7a; cursor: pointer; padding: 10px; margin-top: 15px; font-family: 'BetterVCR'; font-size: 1.2em; width: 100%; }
-        .hidden-name { display: none; font-size: 1.4em; margin-top: 15px; color: #fff; text-shadow: none; }
-        .reward-name { font-size: 1.4em; margin-top: 15px; color: #fff; text-shadow: none; }
+        .hidden-name { display: none; font-size: 1.4em; margin-top: 15px; color: #fff; }
+        .reward-name { font-size: 1.4em; margin-top: 15px; color: #fff; }
     </style>
 </head>
 <body>
@@ -79,12 +68,7 @@
     </div>
 
     <script>
-        // Добавляем поддержку Enter
-        document.getElementById('userInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                loadUserShelf(this.value);
-            }
-        });
+        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') loadUserShelf(e.target.value); });
 
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const ALL_ITEMS = {
@@ -102,12 +86,8 @@
 
         async function loadUserShelf(twitch_username) {
             if(!twitch_username) return;
-            
             document.getElementById('shelf-header').innerText = `${twitch_username.toUpperCase()}_COLLECTION`;
-            
             showWindow('shelf-window');
-            const container = document.getElementById('shelf-container');
-            container.innerHTML = "LOADING...";
             
             const data = await (await fetch('https://sheetdb.io/api/v1/4pzptctzinluq')).json();
             const userFound = data.filter(i => i.Ник.toLowerCase() === twitch_username.toLowerCase());
@@ -117,41 +97,32 @@
                 const r = (i.Редкость || 'common').toString().trim().toLowerCase();
                 const item = (i.Предмет || '').toString().trim();
                 if(!inventory[r]) inventory[r] = {};
-                inventory[r][item] = true;
+                inventory[r][item] = (inventory[r][item] || 0) + 1;
             });
 
+            const container = document.getElementById('shelf-container');
             container.innerHTML = '';
+            
             rarityOrder.forEach(r => {
                 if(!ALL_ITEMS[r]) return;
-                
-                const foundCount = ALL_ITEMS[r].filter(item => inventory[r]?.[item.name]).length;
+                const foundCount = Object.keys(inventory[r] || {}).length;
                 const totalCount = ALL_ITEMS[r].length;
                 
                 const section = document.createElement('div');
                 section.className = 'rarity-section';
                 section.style.borderColor = sectionBorderColors[r];
-                
-                let titleClass = '';
-                if (r === 'epic') titleClass = 'glitch-text';
-                else if (r === 'ultrarare') titleClass = 'ultra-text';
-                
-                section.innerHTML = `<h2 style="color: ${rarityColors[r]}" class="${titleClass}">[${r.toUpperCase()}]_${foundCount}/${totalCount}</h2><div class="shelf" id="shelf-${r}"></div>`;
+                section.innerHTML = `<h2 style="color: ${rarityColors[r]}" class="${r === 'epic' ? 'glitch-text' : r === 'ultrarare' ? 'ultra-text' : ''}">[${r.toUpperCase()}]_${foundCount}/${totalCount}</h2><div class="shelf"></div>`;
                 container.appendChild(section);
                 
                 const shelf = section.querySelector('.shelf');
                 ALL_ITEMS[r].forEach(item => {
-                    const isFound = inventory[r]?.[item.name];
-                    let borderClass = '';
-                    if (r === 'epic') borderClass = 'epic-border';
-                    else if (r === 'ultrarare') borderClass = 'ultra-border';
-                    
+                    const count = inventory[r]?.[item.name] || 0;
+                    const isFound = count > 0;
                     shelf.innerHTML += `
-                        <div class="card ${borderClass}" style="border-color: ${rarityColors[r]}">
+                        <div class="card ${r === 'epic' ? 'epic-border' : r === 'ultrarare' ? 'ultra-border' : ''}" style="border-color: ${rarityColors[r]}">
+                            ${count > 1 ? `<div class="duplicate-badge" style="border-color: ${rarityColors[r]}; color: ${rarityColors[r]}">x${count}</div>` : ''}
                             <img src="${isFound ? SITE_BASE + item.url : SITE_BASE + 'marzigacha/BLANK.gif'}">
-                            ${isFound ? `<p class="reward-name">${item.name}</p>` : `
-                                <button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button>
-                                <p class="hidden-name">${item.name}</p>
-                            `}
+                            ${isFound ? `<p class="reward-name">${item.name}</p>` : `<button class="spoiler-btn" onclick="toggleSpoiler(this)">[SHOW_NAME]</button><p class="hidden-name">${item.name}</p>`}
                         </div>
                     `;
                 });
@@ -163,16 +134,10 @@
             const counts = {};
             data.forEach(i => counts[i.Ник] = (counts[i.Ник] || 0) + 1);
             const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-            document.getElementById('top-list').innerHTML = sorted.map(i => 
-                `<li class="top-item" onclick="loadUserShelf('${i[0]}')">> ${i[0]} [${i[1]}]</li>`
-            ).join('');
+            document.getElementById('top-list').innerHTML = sorted.map(i => `<li class="top-item" onclick="loadUserShelf('${i[0]}')">> ${i[0]} [${i[1]}]</li>`).join('');
         }
 
-        function showWindow(id) {
-            document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
+        function showWindow(id) { document.querySelectorAll('.window').forEach(w => w.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         renderTop();
     </script>
 </body>
