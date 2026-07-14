@@ -79,6 +79,13 @@
     </div>
 
     <script>
+        // Добавляем поддержку Enter
+        document.getElementById('userInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                loadUserShelf(this.value);
+            }
+        });
+
         const SITE_BASE = 'https://marzipanica.github.io/marzi-shelf/';
         const ALL_ITEMS = {
             epic: [{name: "Biblically Accurate Marzi", url: "marzigacha/ANGEL.gif"}, {name: "Bunny Marzi", url: "marzigacha/BUNNY.gif"}, {name: "N7 Marzi", url: "marzigacha/n7.gif"}, {name: "Sailor Marzi", url: "marzigacha/SAILOR.gif"}, {name: "Succubus Marzi", url: "marzigacha/suc.gif"}],
